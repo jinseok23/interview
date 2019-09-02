@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="reserve">
+	<select id="getTime" parameterType="map" resultType="com.kh.ticketsky.info.model.vo.PerformDate">
+		SELECT * FROM PERFORMDATE 
+		WHERE PERFORMNO=#{performNo}
+		AND PERFORMDATE BETWEEN  TO_DATE('${changeDate} 00:00', 'YYYY-MM-DD HH24:MI') AND TO_DATE('${changeDate2} 23:59', 'YYYY-MM-DD HH24:MI')
+
+	</select>
+	<select id="getAvailableDates" parameterType="_int" resultType="com.kh.ticketsky.info.model.vo.PerformDate">
+		SELECT * FROM PERFORMDATE WHERE PERFORMNO=#{performNo}
+	</select>
+
+	<select id="selectAllDate" resultType="com.kh.ticketsky.info.model.vo.PerformDate">
+		SELECT * FROM PERFORMDATE
+	</select>
+	
+	<select id="getSeatInfo" parameterType="_int" resultType="com.kh.ticketsky.info.model.vo.SeatInfo">
+		SELECT * FROM SEATINFO WHERE PERFORMDATENO=#{performDateNo} ORDER BY SEATFLOOR
+	</select>
+	
+	<select id="selectPerformInfo" parameterType="_int" resultType="com.kh.ticketsky.info.model.vo.PerformInfo">
+		SELECT * FROM PERFORMINFO WHERE PERFORMNO=#{performNo}
+	</select>
+	
+	<select id="getSeatImg" parameterType="_int" resultType="com.kh.ticketsky.info.model.vo.SeatImg">
+		SELECT * FROM SEATIMAGE WHERE PERFORMNO=#{performNo}
+	</select>
+	
+	<select id="selectSeat" parameterType="_int" resultType="com.kh.ticketsky.info.model.vo.SeatInfo">
+		SELECT * FROM SEATINFO WHERE SEATINFONO=#{seatInfoNo}
+	</select>
+	
+	<select id="selectSeatData" parameterType="_int" resultType="com.kh.ticketsky.info.model.vo.SeatData">
+		SELECT * FROM SEATDATA WHERE SEATINFONO=#{seatInfoNo} AND RESERVED='N'
+	</select>
+	
+	<select id="getSeatCount" parameterType="_int" resultType="_int">
+		SELECT COUNT(*) FROM SEATDATA WHERE SEATINFONO=#{seatInfoNo} AND RESERVED='N'
+	</select>
+	
+	<insert id="insertPurchase" parameterType="com.kh.ticketsky.reserve.model.vo.Purchase">
+		INSERT INTO PURCHASE VALUES(PURCHASE_SEQ.NEXTVAL,#{userId},#{performNo},#{performName},#{oriPrice},#{actualPrice},default,'결제완료',#{paymentMethod},TO_DATE(#{watchDate},'YYYY-MM-DD HH24:MI'),sysdate,#{purchaseSeat},#{seatDataNo})
+	</insert>
+	
+	<update id="updateSeatData" parameterType="_int">
+		UPDATE SEATDATA SET RESERVED='Y' WHERE SEATDATANO=#{seatDataNo}
+	</update>
+
+</mapper>

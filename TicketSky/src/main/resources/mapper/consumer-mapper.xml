@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mtbatis.org/DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="consumer">
+	<resultMap type="map" id="reserveMap">
+	</resultMap>
+	<resultMap type="map" id="reviewMap">
+	</resultMap>
+	<resultMap type="map" id="InquiryMap">
+	</resultMap>
+	<select id="selectReserveList" parameterType="map" resultMap="reserveMap" >
+		select * from purchase where userId = #{userId}
+		<if test="searchType != null and searchType != ''">
+        	 AND extract(year from ${searchType}) = #{year} and extract(month from ${searchType}) = #{month}
+     	 </if>
+     	 <if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>
+		order by purchasedate desc   
+	</select>
+	<select id="selectReserveListCount" parameterType="map" resultType="_int">
+  	select count(*) cnt from purchase where userId = #{userId}
+  	<if test="searchType != null and searchType != ''">
+        	 AND extract(year from ${searchType}) = #{year} and extract(month from ${searchType}) = #{month}
+     	 </if>
+     	 <if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>   
+  </select>
+  <delete id="deleteReserve" parameterType="string">
+  	delete from purchase where purchasecode = #{purchasecode}
+  </delete>
+  
+  <select id="consumerMyReview" parameterType="map" resultMap="reviewMap">
+  	select rownum, t.* from 
+  	(select * from performanceReview join performinfo on(performanceReview.performno = performinfo.performno)
+  	 where performanceReview.userId = #{userId}
+  	 <if test="searchType != null and searchType != ''">
+        	 AND extract(year from ${searchType}) = #{year} and extract(month from ${searchType}) = #{month}
+     	 </if>
+
+  	 ) t order by rownum
+  </select>
+  
+  <delete id="consumerReviewDelete" parameterType="string">
+  	delete from performanceReview where reviewno = #{reviewno}
+  </delete>
+  
+  <select id="selectconsumerMyReview" parameterType="map" resultType="_int">
+  	select count(*) from performanceReview join performinfo on(performanceReview.performno = performinfo.performno)
+  	 where performanceReview.userId = #{userId}
+  	 <if test="searchType != null and searchType != ''">
+        	 AND extract(year from ${searchType}) = #{year} and extract(month from ${searchType}) = #{month}
+     </if>
+  </select>
+  
+  <select id="consumerMyInquiry" parameterType="map" resultMap="InquiryMap">
+  	select rownum, t.* from (select * from question q join performinfo p on(q.performno = p.performno) where q.userId = #{userId} 
+  	<if test="searchType != null and searchType != ''">
+        	 AND extract(year from ${searchType}) = #{year} and extract(month from ${searchType}) = #{month}
+     </if>
+     ) t
+  </select>
+  
+  <select id="selectconsumerMyInquiry" parameterType="map" resultType="_int">
+  	select count(*) from question where userId = #{userId}
+  	<if test="searchType != null and searchType != ''">
+        	 AND extract(year from ${searchType}) = #{year} and extract(month from ${searchType}) = #{month}
+     </if>
+  </select>
+  
+  <delete id="consumerInquiryDelete" parameterType="string">
+  	delete from question where questionno = #{questionno}
+  </delete>
+</mapper>

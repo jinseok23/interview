@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mtbatis.org/DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="recommend">
+
+   <resultMap type="map" id="RecommendMap">
+   </resultMap>
+
+   
+   <select id="selectRecommendList" resultMap="RecommendMap">
+   select * from
+    (select rownum as rnum, A.* from performinfo A)
+    where rnum between 1 and 8 and performConfirm = 'Y' or performConfirm = 'y'
+    order by ticketOpendate desc
+    </select>
+    
+   <select id="selectRankingList" resultMap="RecommendMap">
+   select * from (select rownum as rnum , a.* from
+   (select performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg , 
+   trunc(sum(performanceReview.performScore)/count(*),1) 
+   as score from performInfo join performanceReview on (performInfo.performNo = performanceReview.performNo)
+    join category on (performinfo.categoryNo = category.categoryNo) where performinfo.performConfirm = 'Y' 
+   group by performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg
+   order by case when score>0 then score end desc)a) where rnum between 1 and 8 
+   </select>
+   
+   <select id="selectCategoryRecommendList" parameterType="_int"  resultMap="RecommendMap">
+   select * from (select rownum as rnum , a.* from
+   (select performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg , 
+   trunc(sum(performanceReview.performScore)/count(*),1) 
+   as score from performInfo join performanceReview on (performInfo.performNo = performanceReview.performNo)
+    join category on (performinfo.categoryNo = category.categoryNo) where performinfo.performConfirm = 'Y' and category.categoryno = 1
+   group by performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg
+   order by case when score>0 then score end desc)a) where rnum between 1 and 8 
+   </select>
+
+   <select id="selectRecommendTotalCount" resultType="_int">
+      select count(*) from performinfo
+   </select>
+   
+</mapper>

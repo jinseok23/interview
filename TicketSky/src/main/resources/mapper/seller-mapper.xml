@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mtbatis.org/DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="seller">
+	<resultMap type="map" id="playMap"></resultMap>
+	<resultMap type="map" id="statusMap"></resultMap>
+	<resultMap type="map" id="genderStatusMap"></resultMap>
+	<resultMap type="map" id="ageStatusMap"></resultMap>
+	<resultMap type="map" id="monthStatusMap"></resultMap>
+	<resultMap type="map" id="monthAmountMap"></resultMap>
+	<select id="selectMyPlayList" parameterType="map"  resultMap="playMap">
+		select * from performInfo where userId = #{userId}
+		<if test="searchType != null and searchType != ''">
+        	 AND ${searchType} like '%'||#{searchTitle}||'%'
+     	</if> 
+	</select>
+	<select id="selectSellerPlayTotalCount" parameterType="map" resultType="_int">
+		select count(*) cnt from performInfo where userId = #{userId}
+		<if test="searchType != null and searchType != ''">
+        	 AND ${searchType} like '%'||#{searchTitle}||'%'
+     	</if> 
+	</select>
+	<select id="selectSellerStatusUserId" parameterType="map" resultMap="statusMap">
+		select  pi.performno, pi.PERFORMNAME,  oriprice, count(actualprice) SELLCOUNT, sum(actualprice) AMOUNT 
+		from purchase p join PERFORMINFO pi on(p.performno = pi.performno) 
+		where pi.userid=#{userId}
+		<if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>
+		 group by pi.performno,pi.performname, oriprice
+	</select>
+	<select id="selectSellerStatusUserIdCount" parameterType="map" resultType="_int">
+		select  count(*) 
+		from purchase p join PERFORMINFO pi on(p.performno = pi.performno) 
+		where pi.userid=#{userId}
+		<if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>
+	 </select>
+	
+	
+	<select id="selectSellerGenderStatus" parameterType="map" resultMap="genderStatusMap">
+		select gender, count(*) cnt from purchase p join PERFORMINFO pi on(p.performno = pi.performno)
+		join member m on(p.userid = m.userid)
+		where pi.userid=#{userId} 
+		<if test="performNo != null and performNo != ''">
+		and p.PERFORMNO=#{performNo}
+		</if>
+		<if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>
+		group by gender
+	</select>
+	<select id="selectSellerAgeStatus" parameterType="map" resultMap="ageStatusMap">
+		select age, count(*) cnt from (select floor((to_char(sysdate,'yyyy') - substr(birthdate,1,4)) /10 ) * 10 age from purchase p join PERFORMINFO pi on(p.performno = pi.performno)
+		join member m on(p.userid = m.userid)
+		where pi.userid=#{userId} 
+		<if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>
+		<if test="performNo != null and performNo != ''">
+		and p.PERFORMNO=#{performNo}
+		</if>
+		)
+		group by age
+	</select>
+	<select id="selectSellerMonthStatus" parameterType="map" resultMap="monthStatusMap">
+	<![CDATA[ 
+		select temp.month month, nvl(t.cnt,0) amount from (select  to_char(purchasedate,'MM') month,sum(actualprice) cnt from purchase p join PERFORMINFO pi on(p.performno = pi.performno)
+	where pi.userid=#{userId} and purchasedate >=EXTRACT(year from sysdate)||'-01-01' and purchasedate < EXTRACT(year from sysdate)+1||'-01-01' ]]>
+	<if test="performNo != null and performNo != ''">
+	and p.PERFORMNO=#{performNo}
+	</if>
+	<![CDATA[ 
+	group by to_char(purchasedate,'MM')) t right join temp on(t.month = temp.month) order by temp.month 
+	]]>
+	 </select>
+	 <select id="selectSellermonthAcount" parameterType="map" resultMap="monthAmountMap">
+	 <![CDATA[ 
+	 	select  pi.PERFORMNAME, oriprice, count(actualprice) sellcnt, to_char(purchasedate,'YYYY-MM-DD') selldate,sum(actualprice) totalAmount  from purchase p join PERFORMINFO pi on(p.performno = pi.performno) 
+where p.PERFORMNO=#{performNo}
+  ]]>
+  <if test="searchdate != null and searchdate != ''">
+		and to_char(purchasedate,'YYYY-MM') = #{searchdate}
+		</if>
+ 	 <![CDATA[ 
+ group by pi.performname,oriprice,to_char(purchasedate,'YYYY-MM-DD') order by selldate
+     ]]>
+	 </select>
+	 
+	 
+	 
+</mapper>

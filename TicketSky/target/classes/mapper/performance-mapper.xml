@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="performance">
+  
+  <resultMap type="map" id="performMap">
+  </resultMap>
+  <select id='categoryList' parameterType="string" resultMap="performMap">
+  	select * from category where majorcategory = #{category}
+  </select>
+  <select id="performAllList" parameterType="string" resultMap="performMap">
+  	select * from performinfo 
+join category on(performinfo.categoryno = category.categoryno) 
+where category.majorcategory =#{category} and performconfirm='Y'
+  </select>
+  <select id = "performSelectList" parameterType="map" resultMap="performMap">
+  	select * from performinfo 
+    join category on(performinfo.categoryno = category.categoryno) 
+    where majorcategory = #{category} and SUBCATEGORY = #{subCategory} and performConfirm='Y'
+  </select>
+  
+  <select id ="performSelectOne" parameterType="_int" resultType="map">
+  	select * from performinfo 
+        join category on(performinfo.categoryno = category.categoryno)
+		where performinfo.performNo=#{no}
+  </select>
+  
+  <select id="performReview" parameterType="_int" resultMap="performMap">
+  	select A.*, count(A.reviewNo)-1 as likeCount from performancereview A
+	left join likeCheck on(A.reviewNo = likeCheck.reviewNo)
+	where A.performno=#{no}
+	group by A.reviewno,A.userid,A.reviewcontent,
+	A.performno,A.performscore,A.reviewdate
+	order by A.reviewdate desc
+  </select>
+  
+  <insert id="performReviewInsert" parameterType="map">
+  	insert into PERFORMANCEREVIEW values(PERFORMANCEREVIEW_seq.nextval, #{userId}, #{review}, ${no}, #{score}, sysdate)
+  </insert>
+  
+  <delete id="performReviewDelete" parameterType="_int">
+  	delete from performanceReview where reviewNo = #{reviewNo}
+  </delete>
+  
+  <select id="performReviewOne" parameterType="_int" resultType="map">
+  	select A.*, count(A.reviewNo)-1 as likeCount from performancereview A
+	left join likeCheck on(A.reviewNo = likeCheck.reviewNo)
+	where A.reviewNo=#{reviewNo}
+	group by A.reviewno,A.userid,A.reviewcontent,
+	A.performno,A.performscore,A.reviewdate
+	order by A.reviewdate desc
+  </select>
+  
+  <update id="performReviewUpdateEnd" parameterType="map">
+  	update performanceReview set reviewcontent = #{reviewUp_message}, performscore = #{starUpdateScore}  where reviewno= #{reviewNo}
+  </update>
+  
+  <select id="performSelectTotalCount" parameterType="map" resultType="_int">
+  	select count(*) cnt from performinfo
+  	join category on(performinfo.categoryNo = category.categoryNo)
+	where majorcategory = #{category} and SUBCATEGORY = #{subCategory} and performconfirm = 'Y'
+  </select>
+  
+  <select id="performReviewTotalCount" parameterType="_int" resultType="_int">
+  	select count(*) cnt from performanceReview where performNo = #{no}
+  </select>
+  <insert id="performQuestionInsert" parameterType="map">
+  	insert into question values(question_seq.nextval,#{level},#{userId},#{question},#{no}, null, sysdate)
+  </insert>
+  
+  <select id="performQuestion" parameterType="_int" resultMap="performMap">
+  	select * from question where performno=#{no} and questionref is null order by questiondate desc
+  </select>
+  <select id="performQuestionReview" parameterType="_int" resultMap="performMap">
+  	select * from question where questionref=#{no}
+  </select>
+  <insert id="performQuestionReviewEnd" parameterType="map">
+  	insert into question values(question_seq.nextval,#{level},#{userId},#{questionReview_message},#{performNo},#{no},sysdate)
+  </insert>
+  <select id="performQuestionOne" parameterType="_int" resultMap="performMap">
+  	select * from question where questionNo=#{questionNo}
+  </select>
+  <update id="performQuestionUpdateEnd" parameterType="map">
+  	update question set questionContent = #{questionUpdate_message} where questionNo=#{questionNo}
+  </update>
+  <delete id="performQuestionDelete" parameterType="_int">
+  	delete from question where questionNo=#{questionNo}
+  </delete>
+  <delete id="performQuestionReviewDelete" parameterType="_int">
+  	delete from question where questionNo=#{questionNo}
+  </delete>
+  <update id="performQuestionReviewUpdateEnd" parameterType="map">
+  	update question set questionContent = #{questionReviewUpdate_message} where questionNo=#{questionNo}
+  </update>
+  <select id="performQuestionTotalCount" parameterType="_int" resultType="_int">
+  	select count(*) cnt from question where performNo = #{no} and questionLevel=1
+  </select>
+  
+  <select id="performReviewCheckList" parameterType="_int" resultMap="performMap">
+  	select * from PERFORMANCEREVIEW where performno=#{no} order by reviewDate desc
+  </select>
+  <select id="performQuestionCheckList" parameterType="_int" resultMap="performMap">
+  	select * from question where performno=#{no} and questionref is null order by questiondate desc
+  </select>
+  
+  <select id="likeCheckList" parameterType="_int" resultMap="performMap">
+  	select * from likecheck where performNo=#{no}
+  </select>
+  
+  <insert id="performReivewLikeInsert" parameterType="map">
+  	insert into likecheck values(likecheck_seq.nextval, #{reviewNo}, #{performNo}, #{userId})
+  </insert>
+  
+  <delete id="performReivewLikeDelete" parameterType="map">
+  	delete from likeCheck where reviewNo = #{reviewNo} and performNo=#{performNo} and userId=#{userId}
+  </delete>
+  
+  <select id="reviewLikeCount" parameterType="_int" resultType="_int">
+  	select count(*)-1 from likecheck where reviewNo=#{reviewNo}
+  </select>
+  
+  <select id="performReviewNo" parameterType="map" resultType="_int">
+  	select reviewNo from performancereview where userId= #{userId} and performNo = #{no}
+  </select>  
+  
+  <insert id="likeCheckDefault" parameterType="map">
+  	insert into likecheck values(likeCheck_seq.nextval, #{reviewNo},#{no},'!admin!')
+  </insert>
+  
+  
+  
+  <select id="performAutocomplete" parameterType="string" resultMap="performMap">
+  	select performName from performinfo 
+  	where performName like '%'||#{value}||'%' and performconfirm = 'Y'
+  </select>
+  
+  <select id="performNameList" resultMap="performMap">
+	select PERFORMNAME from performinfo where performconfirm = 'Y'
+  </select>
+  
+  <select id="searchPerformName" parameterType="string" resultType='_int'>
+  	select performNo from performinfo where performName = #{performName} and performConfirm='Y'
+  </select>
+  
+  <select id="rankList" parameterType="string" resultMap="performMap">
+  	select *
+	from (select rownum as rnum, B.* from
+	(select A.categoryno,A.performno ,A.performName,A.PERFORMDURATION,A.PLACENAME,A.REPOSTERIMG,trunc(sum(performscore)/count(*),1) as avgScore  from performinfo A
+    join performanceReview on(A.performno = performanceReview.performno)
+    join category on(A.categoryNo=category.categoryNo)
+	where category.majorCategory=#{category} and A.performConfirm='Y'
+	group by A.categoryno,A.performNo, A.performName,A.PERFORMDURATION,A.PLACENAME,A.REPOSTERIMG
+	order by avgScore desc)B)
+	where rnum between 1 and 4
+  </select>
+
+  <select id="contentList" parameterType="_int" resultMap="performMap">
+  	select * from performContent where performNo=#{no}
+  </select>
+  
+  <select id="performReviewAvgScore" parameterType="_int" resultType="_int">
+  	select trunc(avg(performScore),0)as avgScore from performanceReview
+ 	where performNo=#{no}
+  </select>  
+</mapper>
+
+
+

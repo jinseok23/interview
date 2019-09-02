@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mtbatis.org/DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="ranking">
+
+   <resultMap type="map" id="RankingMap">
+   </resultMap>
+
+   
+   <select id="selectRankingList" resultMap="RankingMap">
+   select * from (select rownum as rnum , a.* from
+   (select performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg , trunc(sum(performanceReview.performScore)/count(*),1) 
+   as score from performInfo join performanceReview on (performInfo.performNo = performanceReview.performNo)
+    join category on (performinfo.categoryNo = category.categoryNo)  
+   where performinfo.performConfirm = 'Y' or performinfo.performConfirm = 'y'
+   group by performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg
+   order by case when score>0 then score end desc)a) where rnum between 1 and 10
+   </select>
+   
+   <select id="selectCategoryRankingList" parameterType="map"  resultMap="RankingMap">
+      select * from (select rownum as rnum , a.* from
+   (select performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg , trunc(sum(performanceReview.performScore)/count(*),1) 
+   as score from performInfo join performanceReview on (performInfo.performNo = performanceReview.performNo)
+    join category on (performinfo.categoryNo = category.categoryNo)  
+    <if test="cateGory != null and cateGory != ''">
+      where category.majorCategory = #{cateGory}
+   </if>
+   group by performinfo.performNo , performinfo.performName , performinfo.placeName , performinfo.performDuration , performinfo.categoryNo , performinfo.rePosterImg
+   order by case when score>0 then score end desc)a) where rnum between 1 and 10 
+   </select>
+   
+   <select id="selectRankingTotalCount" resultType="_int">
+      select count(*) from performinfo
+   </select>
+   
+   
+</mapper>

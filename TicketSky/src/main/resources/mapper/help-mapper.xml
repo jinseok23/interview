@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="help">
+	<resultMap type="map" id="helpMap"></resultMap>
+	
+	<select id="selectConsultList" resultType="consult">
+		SELECT * FROM CONSULT
+	</select>
+	
+	<insert id="consultInsert" parameterType="consult">
+		insert into consult values(seq_consult_No.nextval,#{consult_No},#{cateNo},#{userId},#{title},#{content},#{cDate})
+	</insert>
+	
+	<insert id="noticeEnroll" parameterType="map">
+		insert into notice
+		values(notice_seq.nextval,#{cateNo},#{title},#{content},
+		<if test="opendate!=null and opendate!=''">
+			#{opendate}
+		</if>
+		<if test="opendate==null or opendate==''">
+			default
+		</if>
+		,default,default)	
+	</insert>
+	<!-- noticeView 페이징처리,전체조회 -->
+	<!-- TO_CHAR(opendate, 'YYYY/MM/DD'),TO_CHAR(ndate, 'YYYY/MM/DD') -->
+	<select id="selectNoticeList" parameterType="map" resultMap="helpMap">
+		select noticeNo, c.cateNo, title, content, TO_CHAR(opendate, 'YYYY/MM/DD') opendate, TO_CHAR(ndate, 'YYYY/MM/DD') ndate, count, cateName 
+		from notice n join notice_category c on(n.cateNo=c.cateNo)
+		where 1=1
+		<if test="cno!=null and cno!=''">
+			and n.cateNo=#{cateNo}
+		</if>
+		order by noticeNo desc
+	</select>
+	<!-- notice 테이블 컬럼 개수 가져오기 -->
+	<select id="selectNoticeCount" resultType="_int">
+		select count(*) from notice
+	</select>
+	<!-- notice 목록 보기 -->
+	<select id="selectNoticeOne" resultMap="helpMap" parameterType="_int">
+		select * from notice join notice_category using(cateNo) 
+		where noticeNo=#{noticeNo} 
+	</select>
+	<!-- selectOne -->
+	<select id="selectNotice" parameterType="notice" resultType="notice">
+		select noticeNo, cateNo, title, content, TO_CHAR(openDate, 'YYYY-MM-DD') openDate, TO_CHAR(nDate,'YYYY-MM-DD') nDate, count
+		 from notice where noticeNo = #{noticeNo}
+		 order by noticeNo desc
+	</select>
+	<update id="modifyEnd" parameterType="notice"><!-- noticeNo없었음 -->
+		update notice set cateNo=#{cateNo}, title=#{title},content=#{content}, opendate=TO_CHAR(#{openDate}, 'YYYY/MM/DD')
+		 where noticeNo=#{noticeNo}
+	</update>
+	<delete id="noticeDelete" parameterType="_int">
+		delete from notice where noticeNo=#{no}
+	</delete>
+	<select id="faqSelectAll" resultMap="helpMap">
+		select * from faq
+	</select>
+	<select id="selectFaqList" parameterType="_int" resultMap="helpMap">
+		select * from faq where cate_no=#{cateNo}
+	</select>
+	<update id="updateCount" parameterType="_int">
+		update notice set count = count + 1 where noticeNo=#{noticeNo}
+	</update>
+	<select id="consultView" parameterType="string" resultMap="helpMap">
+		select * from consult join consult_category using(cate_no)  full outer join consultReply using(consult_no) where userId=#{userId} 
+	</select>
+	<select id="selectMemberOne" parameterType="string" resultMap="helpMap">
+		select * from member where userid=#{userId}
+	</select>
+	<insert id="consultFrmInsert" parameterType="map">
+		insert into consult values(consult_seq.nextval,#{cateNo},#{userId},#{title},#{content},default)
+	</insert>
+	<select id="consultAdmin" resultMap="helpMap">
+		select * from consult join consult_category using(cate_no) full outer join consultReply using(consult_no)
+	</select>
+	
+	<select id="consultAnswer" parameterType="_int" resultMap="helpMap">
+		select * from consult join member using(userid) where consult_no=#{consult_no}
+	</select>
+	
+	<insert id="answerInsert" parameterType="map" >
+		insert into consultreply values(consultreply_seq.nextval,#{answer},#{consult_no},default)
+	</insert>
+	
+	<select id="consultAnswerCheck" parameterType="_int" resultMap="helpMap">
+			select * from consult join member using(userid) inner join consultreply using(consult_no) where consult_no=#{consult_no}
+	</select>
+</mapper>

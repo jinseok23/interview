@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="info">
+<resultMap type="map" id="infoMap"></resultMap>
+
+<select id="selectCategory" resultType="com.kh.ticketsky.info.model.vo.Category">
+	SELECT * FROM CATEGORY ORDER BY MAJORCATEGORY DESC
+</select>
+
+<select id="selectSubCategory" parameterType="string" resultType="com.kh.ticketsky.info.model.vo.Category">
+	SELECT * FROM CATEGORY WHERE MAJORCATEGORY=#{majorCategory}
+</select>
+
+<select id="selectCategoryNo" parameterType="map" resultType="_int">
+	SELECT CATEGORYNO FROM CATEGORY WHERE MAJORCATEGORY=#{major} AND SUBCATEGORY=#{sub}
+</select>
+
+<insert id="insertPerformInfo" parameterType="com.kh.ticketsky.info.model.vo.PerformInfo">	
+	insert into PERFORMINFO values(PERFORMINFO_SEQ.NEXTVAL,#{performName},#{placeName},#{placeAddress},#{placeRoute},TO_DATE(#{ticketOpenDate}, 'YYYY-MM-DD HH24:MI'),#{performDuration},#{categoryNo},sysdate,#{userId},#{companyName},#{companyPhoneNum},#{performTime},#{performGrade},default,#{oriPosterImg},#{rePosterImg})
+	<selectKey keyProperty="performNo" resultType="_int" order="AFTER">
+ 		SELECT PERFORMINFO_SEQ.CURRVAL FROM DUAL
+ 	</selectKey>
+</insert>
+
+<insert id="insertContent" parameterType="com.kh.ticketsky.info.model.vo.PerformContent">
+	INSERT INTO PERFORMCONTENT VALUES(PERFORMCONTENT_SEQ.NEXTVAL,#{oriContentImg},#{performContent},#{performNo},#{reContentImg})
+</insert>
+
+<insert id="insertDate" parameterType="com.kh.ticketsky.info.model.vo.PerformDate">
+	INSERT INTO PERFORMDATE VALUES(PERFORMDATE_SEQ.NEXTVAL , TO_DATE(#{performDate}, 'YYYY-MM-DD HH24:MI'), #{performNo})
+	<selectKey keyProperty="performDateNo" resultType="_int" order="AFTER">
+ 		SELECT PERFORMDATE_SEQ.CURRVAL FROM DUAL
+ 	</selectKey>
+</insert>
+
+<insert id="insertSeatImg" parameterType="com.kh.ticketsky.info.model.vo.SeatImg">
+	INSERT INTO SEATIMAGE VALUES(SEATIMAGE_SEQ.NEXTVAL, #{oriSeatImg },#{reSeatImg},#{performNo},#{seatContent})
+</insert>
+
+<insert id="insertSeatInfo" parameterType="com.kh.ticketsky.info.model.vo.SeatInfo">
+	INSERT INTO SEATINFO VALUES(SEATINFO_SEQ.NEXTVAL, #{seatFloor},#{seatLevel},#{seatName},#{seatStartNum},#{seatEndNum},#{seatPrice},#{notReserved},#{performDateNo},#{seatCount}  )
+	<selectKey keyProperty="seatInfoNo" resultType="_int" order="AFTER">
+		SELECT SEATINFO_SEQ.CURRVAL FROM DUAL
+	</selectKey>
+</insert>
+
+<insert id="insertSeatData" parameterType="com.kh.ticketsky.info.model.vo.SeatData">
+	INSERT INTO SEATDATA VALUES(SEATDATA_SEQ.NEXTVAL, #{seatInfoNo}, #{seatNum}, default)
+</insert>
+
+<delete id="deletePerform" parameterType="_int">
+	DELETE FROM PERFORMINFO WHERE PERFORMNO=#{performInfo}	
+</delete>
+
+<select id="selectDisallowancePerform" resultType="com.kh.ticketsky.info.model.vo.PerformInfo">
+	SELECT * FROM PERFORMINFO WHERE PERFORMCONFIRM='N' OR PERFORMCONFIRM='E' ORDER BY REGDATE DESC
+</select>
+
+<select id="selectAllowablePerform" resultType="com.kh.ticketsky.info.model.vo.PerformInfo">
+	SELECT * FROM PERFORMINFO WHERE PERFORMCONFIRM='Y'
+</select>
+
+<update id="confirmChangeY">
+	UPDATE PERFORMINFO SET PERFORMCONFIRM = 'Y' WHERE PERFORMNO =#{performNo}
+</update>
+
+<update id="confirmChangeE">
+	UPDATE PERFORMINFO SET PERFORMCONFIRM = 'E' WHERE PERFORMNO =#{performNo}
+</update>
+
+
+</mapper>

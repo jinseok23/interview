@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mtbatis.org/DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="member">
+	<insert id="insertConsumer">
+	<if test="snsLogin == 0">
+ 		INSERT INTO MEMBER VALUES(#{userId}, #{password}, #{userName}, #{email},#{gender},#{birthdate},#{address},#{phone},#{categoryNo}, sysdate, 'A', 'C')
+ 	</if>
+ 	<if test="snsLogin == 1">
+ 		INSERT INTO MEMBER VALUES(#{userId}, 'snsLogin', #{userName}, #{email},#{gender},#{birthdate},#{address},#{phone},#{categoryNo}, sysdate, 'A', 'C')
+ 	</if>
+ 	</insert>
+ 	<resultMap type="member" id="memberMap">
+ 	</resultMap>
+ 	<resultMap type="map" id="ratingMap">
+ 	</resultMap>
+ 	<select id="selectOne" resultMap="memberMap" parameterType="string">
+ 		select * from member join consumerrating on(member.ratingCode = consumerrating.ratingCode) where userId = #{userId}
+ 	</select>
+ 	<update id="updateConsumer" parameterType="member">
+ 		update member set password = #{password}, phone = #{phone}, categoryNo = #{categoryNo}, email=#{email},address=#{address} where userId=#{userId}
+ 	</update>
+ 	<delete id="deleteConsumer" parameterType="string">
+ 		delete from member where userId = #{userId}
+ 	</delete>
+ 	
+ 	<!-- seller -->
+ 	<insert id="insertSeller">
+ 		INSERT INTO MEMBER VALUES(#{userId}, #{password}, #{userName}, #{email},#{gender},#{birthdate},#{address},#{phone},#{categoryNo}, sysdate, 'A', 'S')
+ 	</insert>
+ 	
+ 	<!-- admin -->
+ 	<select id="selectConsumerList" parameterType="map" resultMap="memberMap">
+ 		select * from member join consumerrating on(member.ratingCode = consumerrating.ratingCode)  where separator='C'
+ 		  <if test="searchType != null and searchType != ''">
+        	 AND ${searchType} like '%'||#{searchTitle}||'%'
+     	 </if>      
+ 	</select>
+ 	<select id="selectConsumerTotalCount" parameterType="map" resultType="_int">
+  	select count(*) cnt from member join consumerrating on(member.ratingCode = consumerrating.ratingCode) where separator = 'C'
+  	<if test="searchType != null and searchType != ''">
+        	 AND ${searchType} like '%'||#{searchTitle}||'%'
+     	 </if>   
+  </select>
+  	<select id="selectConsumerRating" resultMap="ratingMap">
+  		select * from consumerrating
+  	</select>
+  	<update id="updateConsumerRating" parameterType="map">
+  		update consumerrating set ratingName = #{ratingName}, discountrate=#{discountrate}, ratingamount=#{ratingamount} where ratingCode = #{ratingCode}
+  	</update>
+  	<select id="selectSellerList" parameterType="map" resultMap="memberMap">
+ 		select * from member where separator='S'
+ 		  <if test="searchType != null and searchType != ''">
+        	 AND ${searchType} like '%'||#{searchTitle}||'%'
+     	 </if>      
+ 	</select>
+ 	<select id="selectSellerTotalCount" resultType="_int">
+  	select count(*) cnt from member where separator = 'S'
+  	<if test="searchType != null and searchType != ''">
+        	 AND ${searchType} like '%'||#{searchTitle}||'%'
+     	 </if>   
+  </select>
+  
+  
+  <select id="selectId" resultMap="memberMap" parameterType="map">
+       select * from member join consumerrating on(member.ratingCode = consumerrating.ratingCode) where userName = #{userName} and email = #{email}
+    </select>
+  <select id="selectUser" resultMap="memberMap" parameterType="map">
+       select * from member join consumerrating on(member.ratingCode = consumerrating.ratingCode) where userid=#{userId} and userName = #{userName} and email = #{email}
+    </select>
+    <update id="findPassword" parameterType="member" >
+       update member set password = #{password} where userId=#{userId}
+    </update>
+</mapper>
+
